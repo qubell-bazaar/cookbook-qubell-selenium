@@ -2,4 +2,4 @@ remote_file File.join(node['selenium']['server']['installpath'], 'selenium-serve
   action :delete
 end
 
-include_recipe 'selenium::grid_hub'
+include_recipe 'selenium::default'
