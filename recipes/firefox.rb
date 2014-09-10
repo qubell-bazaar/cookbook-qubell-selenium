@@ -11,13 +11,16 @@ if version == ""
 then
     package "firefox"
 else
-    remote_file "/tmp/firefox.deb" do
-        source "http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt/pool/main/f/" +
-        "firefox-mozilla-build/firefox-mozilla-build_#{version}-0ubuntu1_#{arch}.deb"
-    end
+    case node['platform']
+    when "ubuntu","debian"
+        remote_file "/tmp/firefox.deb" do
+            source "http://downloads.sourceforge.net/project/ubuntuzilla/mozilla/apt/pool/main/f/" +
+            "firefox-mozilla-build/firefox-mozilla-build_#{version}-0ubuntu1_#{arch}.deb"
+        end
 
-    dpkg_package "firefox" do
-        source "/tmp/firefox.deb"
-        action :install
+        dpkg_package "firefox" do
+            source "/tmp/firefox.deb"
+            action :install
+        end
     end
 end
