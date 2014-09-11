@@ -22,3 +22,4 @@ default.selenium.xvfb.display = ':98'
 default.selenium.xvfb.fbsize = '1280x1024x16'
 
 default.selenium.chromedriver_version = '2.9'
+default.selenium.firefox_version = ''
