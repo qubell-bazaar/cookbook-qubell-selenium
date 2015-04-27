@@ -1,4 +1,4 @@
-remote_file File.join(node['selenium']['server']['installpath'], 'selenium-server-standalone.jar') do
+remote_file File.join(node[:selenium][:server][:installpath], 'selenium-server-standalone.jar') do
   action :delete
 end
 
