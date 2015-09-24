@@ -1,51 +1,42 @@
-include_recipe 'selenium::default'
-include_recipe 'java'
-include_recipe 'selenium::xvfb'
+node.set['selenium']['node']['host']=node['ipaddress']
 
+case node['platform_family']
+  when 'rhel', 'debian'
+    #include_recipe "cookbook-qubell-selenium::xvfb"
+    package "xorg-x11-server-Xvfb"
+    node.set['selenium']['node']['capabilities'] = [
+      {
+        browserName: 'chrome',
+        maxInstances: 5,
+        seleniumProtocol: 'WebDriver'
+      },
+      {
+        browserName: 'firefox',
+        maxInstances: 5,
+        seleniumProtocol: 'WebDriver'
+      }
+    ]
+  when 'windows'
+    node.set['selenium']['node']['capabilities'] = [
+      {
+        browserName: 'chrome',
+        maxInstances: 5,
+        seleniumProtocol: 'WebDriver'
+      },
+      {
+        browserName: 'firefox',
+        maxInstances: 5,
+        seleniumProtocol: 'WebDriver'
+      },
+      {
+        browserName: 'internet explorer',
+        maxInstances: 1,
+        seleniumProtocol: 'WebDriver'
+      }
+    ]
+  end
 
-template File.join(node['selenium']['server']['installpath'], 'nodeConfig.json') do
-  source "nodeConfig.json.erb"
-  mode 0644
-  owner node['selenium']['user']
-  group node['selenium']['user']
-end
-
-SERVNAME='run-node'
-script_path=node['selenium']['home']+'init/'+SERVNAME+'.sh'
-
-template script_path do
-  source SERVNAME+'.erb'
-  mode 0755
-  owner node['selenium']['user']
-  group node['selenium']['user']
-end
-
-link "/etc/init.d/"+SERVNAME do
-  to script_path
-end
-
-case node["platform"]
-  when "centos","redhat","fedora"
-     execute "update_rc_for_reg-agent" do
-	user "root"
-	group "root"
-	cwd "/etc/init.d"
-	command <<-EOH
-        chkconfig --add #{SERVNAME} || echo 'service #{SERVNAME} already registred'
-	EOH
-     end
-  when "debian","ubuntu"
-     execute "update_rc_for_reg-agent" do
-	user "root"
-	group "root"
-	cwd "/etc/init.d"
-	command <<-EOH
-        update-rc.d #{SERVNAME} defaults 98 02 || echo 'service #{SERVNAME} already registred'
-	EOH
-    end
-end
-
-service SERVNAME do
-  supports :restart => true
-  action :restart
-end
+include_recipe 'firefox::default'
+include_recipe 'chrome::default'
+include_recipe 'cookbook-qubell-selenium::default'
+include_recipe 'selenium::node'
