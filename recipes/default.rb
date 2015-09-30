@@ -1,54 +1,36 @@
-if platform?('ubuntu', 'debian')
-  include_recipe 'selenium::apt'
-end
+#
+# Installs selenium 
+#
 
-USER=node[:selenium][:user]
+case node['platform_family']
+  when 'windows'
+    node.set['java']['install_flavor']='windows'
+    node.set['java']['java_home']='C:\Program Files\Java'
+    node.set['selenium']['windows']['java']="#{node['java']['java_home']}\\bin\\java.exe"
+    powershell_script "disable_firewall" do
 
-group USER
+      flags "-ExecutionPolicy Unrestricted"
+      code <<-EOH
+        netsh advfirewall set allprofiles state off
+      EOH
+    end
 
-user USER do
-  comment "selenium user"
-  gid USER
-  #system true
-  shell "/bin/bash"
-  home node[:selenium][:home]
-end
+  when 'rhel'
+    node.set['java']['install_flavor']='openjdk'
+    node.set['java']['openjdk_version']="1.7.0.85-2.6.1.2.el7_1"
 
-#folder for pids
-directory '/var/run/selenium' do
-  mode "0775"
-  owner "root"
-  group "root"
-  action :create
-  recursive true
-end
+    service "iptables" do
+      action :stop
+    end
 
-directory node[:selenium][:server][:installpath] do
-  owner USER
-  recursive true
-end
+  when 'debian'
+    node.set['java']['install_flavor']='openjdk'
 
-directory node[:selenium][:home]+'init/' do
-  mode "0775"
-  owner USER
-  group USER
-  action :create
-  recursive true
-end
+    service "ipfw" do
+      action :stop
+    end
+  end
 
-version = node[:selenium][:server][:version]
-version_tuple = version.split('.')
+include_recipe 'java'
+include_recipe 'selenium::server'
 
-if version_tuple[1].to_i < 39
-  download_path = "http://selenium.googlecode.com/files/selenium-server-standalone-#{version}.jar"
-else
-  download_path = "http://selenium-release.storage.googleapis.com/#{version_tuple[0,2].join('.')}/selenium-server-standalone-#{version}.jar"
-end
-
-remote_file File.join(node[:selenium][:server][:installpath], 'selenium-server-standalone.jar') do
-  source download_path
-  action :create_if_missing
-  mode 0644
-  owner USER
-  group USER
-end
