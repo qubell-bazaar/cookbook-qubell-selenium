@@ -2,7 +2,7 @@ node.set['selenium']['node']['host']=node['ipaddress']
 
 case node['platform_family']
   when 'rhel', 'debian'
-    package "xorg-x11-server-Xvfb"
+    include_recipe "xvfb"
     node.set['selenium']['node']['capabilities'] = [
       {
         browserName: 'chrome',
@@ -39,7 +39,6 @@ case node['platform_family']
       }
     ]
 
-    #file "C:/selenium/drivers/chromedriver_win32-2.16/chromedriver.exe" do
     file "#{node['selenium']['windows']['home']}/drivers/chromedriver_win32-#{node['selenium']['chromedriver_version']}/chromedriver.exe" do
       ignore_failure true
       action :delete
@@ -48,10 +47,6 @@ case node['platform_family']
       ignore_failure true
       action :delete
     end
-    #registry_key 'HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BFCACHE' do
-    #  values [{:name => 'iexplore.exe', :type => :dword, :data => '0'}]
-    #  action :create
-    #end
   end
 
 include_recipe 'firefox::default'
